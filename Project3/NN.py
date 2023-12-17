@@ -3,7 +3,8 @@ import torch
 import torch.optim as op
 import torch.nn as nn
 import matplotlib.pyplot as plt
-
+import os
+from pathlib import Path
 
 class PINN(nn.Module):
 
@@ -44,7 +45,7 @@ class PINN(nn.Module):
         """
         Cost function for our 1D heat model
         """
-        x, t, D = X[:, 0:1], X[:, 1:2], X[:, 2:3]
+        x, t = X[:, 0:1], X[:, 1:2]#, X[:, 2:3]
 
         x.requires_grad_(True)
         t.requires_grad_(True)
@@ -55,7 +56,7 @@ class PINN(nn.Module):
         u_dx = torch.autograd.grad(g, x, grad_outputs=torch.ones_like(g), create_graph=True)[0]
         u_dxx = torch.autograd.grad(u_dx, x, grad_outputs=torch.ones_like(u_dx), create_graph=True)[0]
 
-        cost = u_dt - D*u_dxx 
+        cost = u_dt - u_dxx #D*u_dxx 
 
         return cost
     

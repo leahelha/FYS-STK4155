@@ -81,20 +81,35 @@ t2_index1 = int(t2/dt1)
 t1_index2 = int(t1/dt2)
 t2_index2 = int(t2/dt2)
 
+def analytical(x, t, D):
+    a = np.sin(np.pi*x)*np.exp(-D*np.pi**2*t)
+    return a
 
 
-plt.plot(x1, u1[:, t1_index1], label=f"t1 = {t1_index1 * dt1:.2f}")
-plt.plot(x1, u1[:, t2_index1], label=f"t2 = {t2_index1 * dt1:.2f}")
+plt.figure()
+plt.plot(x1, u1[:, t1_index1], 'blue', label=f"t1 = {t1_index1 * dt1:.2f}")
+plt.plot(x1, u1[:, t2_index1], 'red', label=f"t2 = {t2_index1 * dt1:.2f}")
+plt.plot(x1, analytical(x1, t1, 1), 'c.', label=f"Analytical t1 = {t1_index1 * dt1:.2f}")
+plt.plot(x1, analytical(x1, t2, 1), 'k-.', label=f"Analytical t2 = {t2_index1 * dt1:.2f}")
 plt.title("Numerical Solution for ∆x = 1/10")
 plt.xlabel("x")
 plt.ylabel("u(x, t)")
 plt.legend()
-plt.show()
+plt.savefig('Explicit_scheme_1_10.pdf')
 
-plt.plot(x2, u2[:, t1_index2], label=f"t1 = {t1_index2 * dt2:.2f}")
-plt.plot(x2, u2[:, t2_index2], label=f"t2 = {t2_index2 * dt2:.2f}")
+plt.figure()
+plt.plot(x2, u2[:, t1_index2], 'blue', label=f"t1 = {t1_index2 * dt2:.2f}")
+plt.plot(x2, u2[:, t2_index2], 'red', label=f"t2 = {t2_index2 * dt2:.2f}")
+plt.plot(x2, analytical(x2, t1, 1), 'c.', label=f"Analytical t1 = {t1_index2 * dt2:.2f}")
+plt.plot(x2, analytical(x2, t2, 1), 'k-.', label=f"Analytical t2 = {t2_index2 * dt2:.2f}")
 plt.title("Numerical Solution for ∆x = 1/100")
 plt.xlabel("x")
 plt.ylabel("u(x, t)")
 plt.legend()
-plt.show()
+plt.savefig('Explicit_scheme_1_100.pdf')
+
+
+''' For a diffusion coefficient D not equal 1'''
+"""
+Need to get FTCS euler for a diffusion coefficient D
+"""

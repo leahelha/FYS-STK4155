@@ -3,13 +3,15 @@ import torch
 import torch.optim as op
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import os
+from pathlib import Path
 
 from NN import PINN
 
 
 
 
-def initilize_data(N, M, D_list):
+def initialize_data(N, M):
     """
     Initialize the training data
     """
@@ -25,22 +27,20 @@ def initilize_data(N, M, D_list):
 
     #D_list = [0.5, 1, 5, 10, 20]  # list of diffusion coefficients for training
 
-    X_data = np.zeros((len(x_), 3, len(D_list)))
+    #X_data = np.zeros((len(x_), 3, len(D_list)))
 
-    for i in range(len(D_list)):
-        X = np.hstack((x_,t_, np.ones_like(x_)*D_list[i]))
+    X = np.hstack((x_,t_))
+   
 
-        X_data[:, :, i] = X
-
-    X_data = torch.tensor(X_data,dtype=torch.float32,device=device)
+    X_data = torch.tensor(X,dtype=torch.float32,device=device)
 
     return X_data
 
-def initilize_model(nodes, layers, activation_function, optimizer):
+def initialize_model(nodes, layers, activation_function):
     """
-    Initialize the model
+    Initialize the model with ADAM optimizer
     """
-    activation_function = nn.Tanh() 
+   
     model = PINN(nodes, layers, activation_function)  
     optimizer = op.Adam(model.parameters(), lr=0.01)
 
@@ -62,7 +62,7 @@ def train(epochs, X_data, model, optimizer, label=None):
         if epoch %100==0:
             print(f'epoch {epoch}: loss = {loss.item()}')
     
-    trained_model = torch.save(model.state_dict(), f'model{label}.pt')
+    trained_model = torch.save(model.state_dict(), f'model_{label}.pt')
 
 
 
@@ -74,9 +74,11 @@ def predict(X, model):
     """
     '''Prediction, error handling, and plotting'''
     #X_plot = torch.tensor(np.hstack((x_.reshape(-1, 1), t_.reshape(-1, 1))), dtype=torch.float32)
-    u_pred = model.trial(X[:, 0:1], X[:,1:2], X[:,2:3])
+    u_pred = model.trial(X[:, 0:1], X[:,1:2]) #, X[:,2:3])
 
     u_pred = u_pred.detach().cpu().numpy()  # Convert PyTorch tensor to NumPy array
+
+    return u_pred
 
     
 
@@ -87,7 +89,15 @@ def plot_colormaps(x_mesh, t_mesh, u_pred, label=None):
     Plot the absolute error in colormap (difference)
     Plot MSE and R2 scores
     """
-    anal = np.sin(np.pi*x_mesh)*np.exp(-np.pi**2*t_mesh)
+    here = Path(__file__).parent.absolute()
+
+    directory = Path(f"{here}/Plots/{label}")
+
+    if not directory.exists():
+        os.makedirs(directory, exist_ok=True)
+
+    
+    anal = analytical(x_mesh, t_mesh, D=1)
 
     # Reshape for 2D plotting
     u_pred = u_pred.reshape((len(x_mesh), len(t_mesh)))
@@ -101,7 +111,7 @@ def plot_colormaps(x_mesh, t_mesh, u_pred, label=None):
     
     fig, ax = plt.subplots(1, 2, sharey=True)
     im1 = ax[0].contourf(x_mesh, t_mesh, u_pred, levels = levels, cmap='viridis')
-    ax[0].set_title('Predicted')
+    ax[0].set_title('Predicted NN')
     
     im2 = ax[1].contourf(x_mesh, t_mesh, anal, levels = levels, cmap='viridis')
     ax[1].set_title('Analytical')
@@ -113,41 +123,124 @@ def plot_colormaps(x_mesh, t_mesh, u_pred, label=None):
     fig.colorbar(im1, ax=ax[0])
     fig.colorbar(im2, ax=ax[1])
 
-    plt.savefig(f'Predict_vs_analytical_{label}.pdf')
+    plt.savefig(f'{here}/Plots/{label}/Predict_vs_analytical_{label}.pdf')
 
-    fig, ax = plt.subplot(1)
-    err = ax[0].contourf(x_mesh, t_mesh, abs_error, levels = levels2, cmap='viridis')
-    ax[0].set_title('Absolutue error')
-    ax[0].set_xlabel('Position x')
-    ax[0].set_ylabel('Time t')
-    fig.colorbar(err, ax=ax[0])
+    plt.figure()
+    err = plt.contourf(x_mesh, t_mesh, abs_error, levels = levels2, cmap='viridis')
+    plt.title('Absolutue error')
+    plt.xlabel('Position x')
+    plt.ylabel('Time t')
+    plt.colorbar(err)
 
-    plt.savefig(f'Absolute error_{label}.pdf')
+    plt.savefig(f'{here}/Plots/{label}/Absolute error_{label}.pdf')
 
 
 
-def plot_MSE():
+def MSE(y, y_pred):
     """
-    Plot R2 scores
+    Calculate MSE
     """
-    ...
+    assert y.shape == y_pred.shape, "Input arrays must have the same shape"
 
-def plot_R2():
+    mse = np.mean((y-y_pred)**2)
+
+    return mse
+
+
+def analytical(x, t, D):
+    a = np.sin(np.pi*x)*np.exp(-D*np.pi**2*t)
+    return a
+
+def explicit_scheme(u, dx, dt, N, M):
     """
-    Plot R2 scores
+    Function which performs the explicit scheme.
+    
     """
-    ...
+    alpha = dt / (dx ** 2)
+    if alpha > 0.5:  # Stability condition
+        raise ValueError(f"Stability condition not met. alpha = {alpha}, for dt={dt} and dx^2 ={dx**2}")
+   
+    for j in range(0, M-1):    # time 
+        for i in range(1, N-1):    # space 
+            u[i, j+1] = alpha*u[i-1, j] + (1-2*alpha)*u[i,j] + alpha*u[i+1, j]
+
+    return u
+
+
+def plot_explicit(t_index, dx, color, pred_color):
+    T = 1 #total time
+    L = 1
+    dt = 0.5*dx**2
+
+    N = int(L/dx)+1
+
+    x = np.linspace(0, L, N)
+
+    M = int(T/dt)+1
+    t_vals=np.linspace(0,1,M)
+    u = np.zeros((N, M))
+
+    t = t_vals[t_index]
+    
+
+    # BC
+    u[0, :] = 0
+    u[-1, :] = 0
+    # IC
+    u[:, 0] = np.sin(np.pi*x)
+
+    u = explicit_scheme(u, dx, dt, N, M)
+    anal = analytical(x, t, 1)
+    
+    mse = MSE(u[:, t_index], anal)
+    
+
+    print(f'dx = {dx}')
+    print(f'N = {N}')
+    print(f'M = {M}')
+    print(f'dt = {dt}, t = {t}, total time = {T}')
+    print(f'MSE = {mse}')
+    print('\n')
+    plt.plot(x, u[:, t_index], color, label=f"t = {t :.2f}")
+    plt.plot(x, anal, pred_color, label=f"Analytical t = {t :.2f}")
+
+    plt.title(f"∆x = {dx}")
+    plt.xlabel("x")
+    plt.ylabel("u(x, t)")
+    plt.legend()
+    #plt.savefig(f'Explicit_scheme_{dx}.pdf')
+
 
 
 
 def main(D_list):
-    X_data = initilize_data(100, 100, D_list=D_list)
-    model, optimizer = initilize_model(9, 5, )
+    N = 100
+    M = 100
+
+    x = np.linspace(0, 1, N)
+    t = np.linspace(0, 1, M)
+
+    x_mesh, t_mesh = np.meshgrid(x, t)
+
+    activation = [nn.Tanh(), nn.ReLU(), nn.Sigmoid()]
+
+    X_data = initialize_data(N=N, M=M)
+    model, optimizer = initialize_model(nodes=9, layers=5, activation_function=activation[0])
+
+    print('Initializing done')
+    # train(epochs=1000, X_data=X_data, model=model, optimizer=optimizer, label='9x5')
+
+    model.load_state_dict(torch.load('model_9x5.pt'))
+
+    u_pred = predict(X=X_data, model=model)
 
 
-if __name__=="__main__":
-    D_list = [1]
-    main(D_list)
+    plot_colormaps(x_mesh, t_mesh, u_pred, label='9x5')
+
+
+# if __name__=="__main__":
+#     D_list = [1]
+#     main(D_list)
 
 
 
