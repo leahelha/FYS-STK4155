@@ -15,7 +15,7 @@ np.random.seed(43)
 
 here = Path(__file__).parent.absolute()
 
-def main(activation, label, training=False, colormap=False, compare_lineplot = False):
+def main(activation, label, training=False, colormap=False, compare_lineplot = False, explicit = False):
     x = np.linspace(0, 1, N)
     t = np.linspace(0, 1, M)
 
@@ -47,29 +47,29 @@ def main(activation, label, training=False, colormap=False, compare_lineplot = F
         plt.title(f"Comparison of NN prediction for ∆x = {0.01} with analytical")
         plt.show()
 
+    if explicit == True:
+        """ Explicit model plot"""
             
-    
+        plt.figure()
+        plot_explicit(t_index=1, dx=0.1, color='blue', a_color='c3')
+        plot_explicit(t_index=25, dx=0.1, color='green', a_color='k3')
+        plt.title(f"∆x = {0.1}")
+        plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_10.pdf')
+
+
+        plt.figure()
+        plot_explicit(t_index=100, dx=0.01, color='blue', a_color='c3')
+        plot_explicit(t_index=2500, dx=0.01, color='green', a_color='k3')
+        plt.title(f"∆x = {0.01}")
+        plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_100.pdf')
+
     
 if __name__=="__main__":
 
-    """ Explicit model plot"""
-       
-    plt.figure()
-    plot_explicit(t_index=1, dx=0.1, color='blue', a_color='c3')
-    plot_explicit(t_index=25, dx=0.1, color='green', a_color='k3')
-    plt.title(f"∆x = {0.1}")
-    plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_10.pdf')
-    
+    """
+     
+    """
 
-    plt.figure()
-    plot_explicit(t_index=100, dx=0.01, color='blue', a_color='c3')
-    plot_explicit(t_index=2500, dx=0.01, color='green', a_color='k3')
-    plt.title(f"∆x = {0.01}")
-    plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_100.pdf')
-   
-    
-
-    """Neural network training and plots"""
     N = 100  
     M = 100
 
@@ -79,8 +79,8 @@ if __name__=="__main__":
 
     label = f'{nodes}x{layers}_{activation[0]}'  
 
-    # main(activation[0], label, training=True, colormap=False)
-    #main(activation[0], label, training=False, colormap=False, compare_lineplot = True)
+    main(activation[0], label, training=True) # Comment out when done training
+    main(activation[0], label, training=False, colormap=True, compare_lineplot = True, explicit = True)
 
     
     
