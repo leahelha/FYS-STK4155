@@ -8,6 +8,7 @@ from pathlib import Path
 
 from NN import PINN
 
+device= torch.device("cpu")
 
 
 
@@ -15,7 +16,7 @@ def initialize_data(N, M):
     """
     Initialize the training data
     """
-    device= torch.device("cpu")
+    
 
     x = np.linspace(0, 1, N)
     t = np.linspace(0, 1, M)
@@ -24,10 +25,6 @@ def initialize_data(N, M):
 
     x_ = x_mesh.reshape(-1 ,1)
     t_ = t_mesh.reshape(-1, 1)
-
-    #D_list = [0.5, 1, 5, 10, 20]  # list of diffusion coefficients for training
-
-    #X_data = np.zeros((len(x_), 3, len(D_list)))
 
     X = np.hstack((x_,t_))
    
@@ -70,7 +67,7 @@ def train(epochs, X_data, model, optimizer, label=None):
 
 def predict(X, model):
     """
-    Use the saved model and make predictions for different D
+    Use the saved model and make predictions 
     """
     '''Prediction, error handling, and plotting'''
     #X_plot = torch.tensor(np.hstack((x_.reshape(-1, 1), t_.reshape(-1, 1))), dtype=torch.float32)
@@ -167,19 +164,18 @@ def explicit_scheme(u, dx, dt, N, M):
     return u
 
 
-def plot_explicit(t_index, dx, color, pred_color):
+def plot_explicit(t_index, dx, color, a_color):
     T = 1 #total time
     L = 1
     dt = 0.5*dx**2
 
     N = int(L/dx)+1
+    M = int(T/dt)+1
 
     x = np.linspace(0, L, N)
-
-    M = int(T/dt)+1
-    t_vals=np.linspace(0,1,M)
     u = np.zeros((N, M))
 
+    t_vals=np.linspace(0,1,M)
     t = t_vals[t_index]
     
 
@@ -192,25 +188,72 @@ def plot_explicit(t_index, dx, color, pred_color):
     u = explicit_scheme(u, dx, dt, N, M)
     anal = analytical(x, t, 1)
     
-    mse = MSE(u[:, t_index], anal)
+    rmse = np.sqrt(MSE(u[:, t_index], anal))
     
 
     print(f'dx = {dx}')
     print(f'N = {N}')
     print(f'M = {M}')
     print(f'dt = {dt}, t = {t}, total time = {T}')
-    print(f'MSE = {mse}')
+    print(f'RMSE = {rmse:.2e}')
     print('\n')
     plt.plot(x, u[:, t_index], color, label=f"t = {t :.2f}")
-    plt.plot(x, anal, pred_color, label=f"Analytical t = {t :.2f}")
-
-    plt.title(f"∆x = {dx}")
+    plt.plot(x, anal, a_color, label=f"Analytical t = {t :.2f}")
+    plt.legend()
     plt.xlabel("x")
     plt.ylabel("u(x, t)")
-    plt.legend()
     #plt.savefig(f'Explicit_scheme_{dx}.pdf')
 
 
+def plot_heatmap():
+    """
+    Heatmap plot for gridsearching
+    """
+    ...
+
+def plot_NN_line(t_index, dx, model, color='blue', a_color='m3'):
+    """
+    NN equivalent to plot explicit
+    """
+    T = 1 #total time
+    L = 1
+    dt = 0.5*dx**2
+
+    N = int(L/dx)+1
+    M = int(T/dt)+1
+
+    x = np.linspace(0, L, N)
+    t_vals = np.linspace(0, T, M)
+    t_point = t_vals[t_index]
+    
+    t = np.ones_like(x)*t_point
+
+    X = np.hstack((x.reshape(-1,1), t.reshape(-1,1)))
+    X = torch.tensor(X, dtype=torch.float32, device=device)
+
+    
+    u_pred = predict(X, model)
+
+    analy = analytical(x, t_point, 1)
+
+    print('NN')
+    print(np.shape(u_pred[:, 0]))
+    print(np.shape(analy))
+    mse = MSE(u_pred[:, 0], analy)
+
+    
+    print(f'dx = {dx}')
+    print(f'N = {N}')
+    print(f'M = {M}')
+    print(f'dt = {dt}, t = {t}, total time = {T}')
+    print(f'MSE = {mse}')
+    print('\n')
+
+    plt.plot(x, u_pred, color, label=f"NN t = {t_point :.2f}")
+    #plt.plot(x, analy, a_color, label=f"Analytical t = {t_point :.2f}")
+    plt.legend()
+    plt.xlabel("x")
+    plt.ylabel("u(x, t)")
 
 
 def main(D_list):

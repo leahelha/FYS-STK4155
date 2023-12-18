@@ -16,7 +16,7 @@ class PINN(nn.Module):
         
         layers = [nn.Linear(2, num_hidden_nodes), activation_function]
 
-        for i in range(num_layers-2):
+        for i in range(num_layers):
             layers += [nn.Linear(num_hidden_nodes, num_hidden_nodes), activation_function]
         
         layers += [nn.Linear(num_hidden_nodes, 1)]

@@ -109,7 +109,3 @@ plt.legend()
 plt.savefig('Explicit_scheme_1_100.pdf')
 
 
-''' For a diffusion coefficient D not equal 1'''
-"""
-Need to get FTCS euler for a diffusion coefficient D
-"""
