@@ -17,7 +17,7 @@ np.random.seed(43)
 here = Path(__file__).parent.absolute()
 
 
-def main(activation, label, training=False, colormap=False, compare_lineplot=False, explicit=False):
+def main(activation, label, training=False, colormap=False, compare_lineplot=False):
     x = np.linspace(0, 1, N)
     t = np.linspace(0, 1, M)
 
@@ -53,23 +53,25 @@ def main(activation, label, training=False, colormap=False, compare_lineplot=Fal
             f"Comparison of NN prediction for ∆x = {0.01} with analytical")
         plt.show()
 
-    if explicit == True:
-        """ Explicit model plot"""
+    
 
-        plt.figure()
-        plot_explicit(t_index=10, dx=0.1, color='blue', a_color='c3')
-        plot_explicit(t_index=250, dx=0.1, color='green', a_color='k3')
-        plt.title(f"∆x = {0.1}")
-        plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_10.pdf')
-
-        plt.figure()
-        plot_explicit(t_index=1000, dx=0.01, color='blue', a_color='c3')
-        plot_explicit(t_index=25000, dx=0.01, color='green', a_color='k3')
-        plt.title(f"∆x = {0.01}")
-        plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_100.pdf')
 
 
 if __name__ == "__main__":
+
+    """ Explicit model plot"""
+
+    plt.figure()
+    plot_explicit(t_index=10, dx=0.1, color='blue', a_color='c3')
+    plot_explicit(t_index=250, dx=0.1, color='green', a_color='k3')
+    plt.title(f"∆x = {0.1}")
+    plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_10.pdf')
+
+    plt.figure()
+    plot_explicit(t_index=1000, dx=0.01, color='blue', a_color='c3')
+    plot_explicit(t_index=25000, dx=0.01, color='green', a_color='k3')
+    plt.title(f"∆x = {0.01}")
+    plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_100.pdf')
    
     N = 10
     M = 10
@@ -82,11 +84,8 @@ if __name__ == "__main__":
 
     label = f'{nodes}x{layers}_{activation_name[1]}'
 
-    #main(activation[0], label, training=True)  # Comment out when done training
-    main(activation[1], label, training=False,
-         colormap=False, compare_lineplot=False, explicit=True)
-    
-    # To train from config, uncomment the following:
+
+    ####### To train from config, uncomment the following:########
 
     # config = {'N': 10, 'M': 10,
     #           'num_hidden_nodes': 40, 'num_layers': 3,
@@ -97,5 +96,10 @@ if __name__ == "__main__":
     #           }
     # run_from_config(config)
 
-    # To run grid search, uncomment the following:
+    ####### To run grid search, uncomment the following:######
     # grid_search()
+
+    ###########Pick an activation function, and set any plots you want to run to True ##########
+    # main(activation[1], label, training=False,
+    #      colormap=False, compare_lineplot=False)
+    
