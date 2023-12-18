@@ -390,11 +390,7 @@ def plot_explicit(t_index, dx, color, a_color):
     # plt.savefig(f'Explicit_scheme_{dx}.pdf')
 
 
-def plot_heatmap():
-    """
-    Heatmap plot for gridsearching
-    """
-    ...
+
 
 
 def plot_NN_line(t_index, dx, model, color='blue', a_color='m3'):

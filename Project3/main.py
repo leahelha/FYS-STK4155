@@ -32,7 +32,7 @@ def main(activation, label, training=False, colormap=False, compare_lineplot=Fal
               optimizer=optimizer, label=f'{label}')
 
     elif training == False:
-        model.load_state_dict(torch.load(f'model_{label}.pt'))
+        model.load_state_dict(torch.load(f'model{label}.pt'))
 
     u_pred = predict(X=X_data, model=model)
 
@@ -57,46 +57,45 @@ def main(activation, label, training=False, colormap=False, compare_lineplot=Fal
         """ Explicit model plot"""
 
         plt.figure()
-        plot_explicit(t_index=1, dx=0.1, color='blue', a_color='c3')
-        plot_explicit(t_index=25, dx=0.1, color='green', a_color='k3')
+        plot_explicit(t_index=10, dx=0.1, color='blue', a_color='c3')
+        plot_explicit(t_index=250, dx=0.1, color='green', a_color='k3')
         plt.title(f"∆x = {0.1}")
         plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_10.pdf')
 
         plt.figure()
-        plot_explicit(t_index=100, dx=0.01, color='blue', a_color='c3')
-        plot_explicit(t_index=2500, dx=0.01, color='green', a_color='k3')
+        plot_explicit(t_index=1000, dx=0.01, color='blue', a_color='c3')
+        plot_explicit(t_index=25000, dx=0.01, color='green', a_color='k3')
         plt.title(f"∆x = {0.01}")
         plt.savefig(f'{here}/Plots/Explicit/Explicit_scheme_1_100.pdf')
 
 
 if __name__ == "__main__":
+   
+    N = 10
+    M = 10
+    
 
-    """
+    nodes = 40
+    layers = 3
+    activation = [nn.Tanh(), nn.SiLU(), nn.Sigmoid()]
+    activation_name = ['Tahn', 'SiLU', 'Sigmoid']
 
+    label = f'{nodes}x{layers}_{activation_name[1]}'
 
-    N = 100
-    M = 100
-
-    nodes = 9
-    layers = 5
-    activation = [nn.Tanh(), nn.ReLU(), nn.Sigmoid()]
-
-    label = f'{nodes}x{layers}_{activation[0]}'
-
-    main(activation[0], label, training=True)  # Comment out when done training
-    main(activation[0], label, training=False,
-         colormap=True, compare_lineplot=True, explicit=True)
-    """
+    #main(activation[0], label, training=True)  # Comment out when done training
+    main(activation[1], label, training=False,
+         colormap=False, compare_lineplot=False, explicit=True)
+    
     # To train from config, uncomment the following:
 
-    config = {'N': 10, 'M': 10,
-              'num_hidden_nodes': 40, 'num_layers': 3,
-              'activation_function': nn.SiLU(),
-              'activation_name': 'SiLU',
-              'lr': 0.01,
-              'epochs': 40000
-              }
-    run_from_config(config)
+    # config = {'N': 10, 'M': 10,
+    #           'num_hidden_nodes': 40, 'num_layers': 3,
+    #           'activation_function': nn.SiLU(),
+    #           'activation_name': 'SiLU',
+    #           'lr': 0.01,
+    #           'epochs': 40000
+    #           }
+    # run_from_config(config)
 
     # To run grid search, uncomment the following:
     # grid_search()
