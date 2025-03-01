@@ -4,3 +4,5 @@ This is the repository for all the projects completed for the  subject **FYS-STK
 Project 1 and 2 are collaborative projects, wheras Project 3 is individual project.
 
 A project specific _README.md_ is available inside of each project folder.
+
+The reports of each project are in the folder Project_reports.
