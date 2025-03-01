@@ -5,4 +5,4 @@ Project 1 and 2 are collaborative projects, wheras Project 3 is individual proje
 
 A project specific _README.md_ is available inside of each project folder.
 
-The reports of each project are in the folder Project_reports.
+
